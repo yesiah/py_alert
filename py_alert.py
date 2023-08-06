@@ -84,8 +84,10 @@ def get_today_news_contents(url: str):
   parser = TodaysNewsContentsParser()
   if '政令' in first_section:
     parser.feed(first_section)
+    return (title, parser.titles, parser.hrefs)
+  
+  return ('', '', '')
 
-  return (title, parser.titles, parser.hrefs)
 
 
 def format_email_text_content(title, subtitles, links):
@@ -100,6 +102,10 @@ today_news_link = get_today_news_link()
 logging.debug('Today\'s news link: %s', today_news_link)
 
 title, subtitles, links = get_today_news_contents(URL_ROOT + today_news_link)
+if title == '':
+  logging.info('No updates today. Exit.')
+  sys.exit(1)
+
 logging.debug('Today\'s title: %s', title)
 logging.debug('Today\'s subtitles: %s', subtitles)
 logging.debug('Links: %s', links)
@@ -119,7 +125,7 @@ with smtplib.SMTP(host='smtp.gmail.com', port='587') as smtp:
     smtp.starttls()
     smtp.login(email, pw)  # login with application code
     smtp.send_message(content)
-    print('Complete!')
+    logging.info('Complete!')
   except Exception as e:
-    print('Error message: ', e)
+    logging.info('Error message: ', e)
 
